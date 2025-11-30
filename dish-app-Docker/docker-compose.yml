@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  # Backend Spring Boot
+  backend:
+    build: ./backend
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    networks:
+      - restaurant-network
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - database
+
+  # Frontend Angular
+  frontend:
+    build: 
+      context: ./dish-app
+      dockerfile: Dockerfile
+    ports:
+      - "4200:80"
+    environment:
+      - API_URL=http://localhost:8080
+    networks:
+      - restaurant-network
+    depends_on:
+      - backend
+
+  # Database PostgreSQL
+  database:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: restaurant
+      POSTGRES_USER: restaurant
+      POSTGRES_PASSWORD: restaurant123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - restaurant-network
+
+  # Redis for caching (optional)
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - restaurant-network
+
+networks:
+  restaurant-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+
