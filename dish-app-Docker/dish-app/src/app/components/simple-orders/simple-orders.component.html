@@ -1,0 +1,236 @@
+<!-- src/app/components/simple-orders/simple-orders.component.html -->
+
+<div class="orders-container">
+  <!-- Header Moderno -->
+  <div class="orders-header">
+    <div class="header-content">
+      <div class="header-title">
+        <h2>📋 Gestão de Pedidos</h2>
+        <p class="header-subtitle">Gerencie seus pedidos de forma eficiente</p>
+      </div>
+      <button class="btn btn-primary btn-new-order" (click)="showNewOrderForm = true">
+        <span class="btn-icon">➕</span>
+        <span>Novo Pedido</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Formulário de Novo Pedido Moderno -->
+  <div *ngIf="showNewOrderForm" class="new-order-form">
+    <div class="form-header">
+      <div class="form-header-content">
+        <h3>🆕 Criar Novo Pedido</h3>
+        <p>Preencha os dados do cliente para criar um novo pedido</p>
+      </div>
+      <button class="btn-close-form" (click)="showNewOrderForm = false" title="Fechar formulário">
+        ✕
+      </button>
+    </div>
+    
+    <div class="form-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="customerName">
+            <span class="label-icon">👤</span>
+            Nome do Cliente
+          </label>
+          <input 
+            type="text" 
+            id="customerName"
+            [(ngModel)]="newOrder.customerName" 
+            placeholder="Digite o nome completo do cliente"
+            class="form-control"
+          >
+        </div>
+        
+        <div class="form-group">
+          <label for="customerPhone">
+            <span class="label-icon">📞</span>
+            Telefone
+          </label>
+          <input 
+            type="text" 
+            id="customerPhone"
+            [(ngModel)]="newOrder.customerPhone" 
+            placeholder="(11) 99999-9999"
+            class="form-control"
+          >
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label for="deliveryAddress">
+          <span class="label-icon">📍</span>
+          Endereço de Entrega
+        </label>
+        <textarea 
+          id="deliveryAddress"
+          [(ngModel)]="newOrder.deliveryAddress" 
+          placeholder="Rua, número, bairro, cidade, CEP"
+          class="form-control"
+          rows="3"
+        ></textarea>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-success" (click)="saveNewOrder()" [disabled]="!newOrder.customerName">
+          <span>✅</span>
+          <span>Criar Pedido</span>
+        </button>
+        <button class="btn btn-secondary" (click)="showNewOrderForm = false">
+          <span>❌</span>
+          <span>Cancelar</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lista de Pedidos -->
+  <div class="orders-list">
+    <div class="orders-list-header">
+      <h3>📋 Pedidos Existentes</h3>
+      <span class="orders-count" *ngIf="orders.length > 0">{{ orders.length }} pedido(s)</span>
+    </div>
+    <div *ngIf="orders.length === 0" class="no-orders">
+      <div class="no-orders-content">
+        <div class="no-orders-icon">📭</div>
+        <h3>Nenhum pedido cadastrado</h3>
+        <p>Você ainda não possui pedidos cadastrados no sistema.</p>
+        <p class="no-orders-hint">Clique no botão "Novo Pedido" acima para começar!</p>
+        <button class="btn btn-primary" (click)="showNewOrderForm = true">
+          ➕ Criar Primeiro Pedido
+        </button>
+      </div>
+    </div>
+    
+    <div *ngFor="let order of orders" 
+         class="order-card" 
+         [class.selected]="selectedOrder?.id === order.id"
+         (click)="selectOrder(order)">
+      
+      <div class="order-card-header">
+        <div class="order-main-info">
+          <div class="order-customer">
+            <span class="customer-icon">👤</span>
+            <h4>{{ order.customerName || 'Cliente não informado' }}</h4>
+          </div>
+          <div class="order-meta">
+            <span class="meta-item">
+              <span class="meta-icon">#</span>
+              Pedido {{ order.id }}
+            </span>
+            <span class="meta-item">
+              <span class="meta-icon">💰</span>
+              R$ {{ order.totalAmount?.toFixed(2) || '0.00' }}
+            </span>
+          </div>
+        </div>
+        <div class="order-status-wrapper">
+          <span class="status-badge" [ngClass]="getStatusColor(order.status)">
+            {{ getStatusText(order.status) }}
+          </span>
+        </div>
+      </div>
+
+      <div class="order-items-preview" *ngIf="order.items && order.items.length > 0">
+        <div class="items-preview-header">
+          <span class="items-icon">📦</span>
+          <span class="items-count">{{ order.items.length }} item(ns)</span>
+        </div>
+        <div class="items-preview-list">
+          <span *ngFor="let item of order.items.slice(0, 3); let last = last" class="item-preview">
+            {{ item.dishName }} ({{ item.quantity }}x)
+            <span *ngIf="!last">, </span>
+          </span>
+          <span *ngIf="order.items.length > 3" class="more-items">+{{ order.items.length - 3 }} mais</span>
+        </div>
+      </div>
+
+      <div class="order-card-actions">
+        <button class="btn btn-danger btn-sm" (click)="deleteOrder(order); $event.stopPropagation()">
+          <span>🗑️</span>
+          <span>Remover</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detalhes do Pedido Selecionado -->
+  <div *ngIf="selectedOrder" class="order-details">
+    <h3>📝 Detalhes do Pedido</h3>
+    
+    <div class="order-info">
+      <p><strong>Cliente:</strong> {{ selectedOrder.customerName }}</p>
+      <p><strong>Mesa:</strong> {{ selectedOrder.tableNumber }}</p>
+      <p><strong>Status:</strong> 
+        <span class="status-badge" [ngClass]="getStatusColor(selectedOrder.status)">
+          {{ getStatusText(selectedOrder.status) }}
+        </span>
+      </p>
+      <p><strong>Total:</strong> R$ {{ selectedOrder.totalAmount?.toFixed(2) || '0.00' }}</p>
+    </div>
+
+    <!-- Adicionar Itens -->
+    <div class="add-items">
+      <h4>🍽️ Adicionar Itens</h4>
+      <div class="dishes-grid">
+        <div *ngFor="let dish of dishes" class="dish-card" (click)="addItemToOrder(dish)">
+          <h5>{{ dish.name }}</h5>
+          <p class="dish-price">R$ {{ dish.price?.toFixed(2) }}</p>
+          <p class="dish-description">{{ dish.description }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Itens do Pedido -->
+    <div class="order-items" *ngIf="selectedOrder.items && selectedOrder.items.length > 0">
+      <h4>📦 Itens do Pedido</h4>
+      <div class="items-list">
+        <div *ngFor="let item of selectedOrder.items" class="item-row">
+          <div class="item-info">
+            <span class="item-name">{{ item.dishName }}</span>
+            <div class="quantity-controls">
+              <button class="btn-quantity" (click)="decreaseQuantity(item)" [disabled]="!canEditOrder()">
+                ➖
+              </button>
+              <span class="item-quantity">{{ item.quantity }}</span>
+              <button class="btn-quantity" (click)="increaseQuantity(item)" [disabled]="!canEditOrder()">
+                ➕
+              </button>
+            </div>
+            <span class="item-price">R$ {{ item.totalPrice?.toFixed(2) }}</span>
+          </div>
+          <button class="btn btn-danger btn-sm" (click)="removeItemFromOrder(item)" [disabled]="!canEditOrder()">
+            ❌
+          </button>
+        </div>
+      </div>
+      
+      <div class="total-section">
+        <h4>Total: R$ {{ selectedOrder.totalAmount?.toFixed(2) || '0.00' }}</h4>
+      </div>
+    </div>
+
+    <!-- Ações do Pedido -->
+    <div class="order-actions">
+      <button 
+        class="btn btn-primary" 
+        (click)="sendToKitchen(selectedOrder.id)"
+        [disabled]="!canSendToKitchen()">
+        👨‍🍳 Enviar para Cozinha
+      </button>
+      <button 
+        class="btn btn-danger" 
+        (click)="deleteOrder(selectedOrder)"
+        [disabled]="!canEditOrder()">
+        🗑️ Remover Pedido
+      </button>
+      
+      <!-- Status Info -->
+      <div class="status-info" *ngIf="selectedOrder.status === 'PREPARING'">
+        <span class="status-badge preparing">👨‍🍳 Enviado para Cozinha</span>
+        <small class="status-note">Você ainda pode editar este pedido</small>
+      </div>
+    </div>
+  </div>
+</div>

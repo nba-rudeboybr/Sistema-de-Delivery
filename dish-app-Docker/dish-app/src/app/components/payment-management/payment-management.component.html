@@ -1,0 +1,161 @@
+<!-- src/app/components/payment-management/payment-management.component.html -->
+
+<div class="payment-management-container">
+  <div class="header">
+    <h1>💰 Gestão de Pagamentos</h1>
+    <div class="status-filter">
+      <label for="statusFilter">Filtrar por Status:</label>
+      <select 
+        id="statusFilter" 
+        [(ngModel)]="selectedStatus" 
+        (change)="onStatusChange()"
+        class="status-select"
+      >
+        <option *ngFor="let option of statusOptions" [value]="option.value">
+          {{ option.icon }} {{ option.label }}
+        </option>
+      </select>
+    </div>
+  </div>
+
+  <div class="orders-section">
+    <div class="orders-header">
+      <h2>💳 Pedidos para Pagamento</h2>
+      <div class="orders-count">
+        {{ filteredOrders.length }} pedido(s) encontrado(s)
+      </div>
+    </div>
+
+    <div class="orders-grid" *ngIf="filteredOrders.length > 0; else noOrders">
+      <div class="order-card" *ngFor="let order of filteredOrders" [class]="getStatusClass(order.status)">
+        <div class="order-header">
+          <div class="order-info">
+            <h3>{{ order.customerName }}</h3>
+            <p class="customer-phone">📞 {{ order.customerPhone }}</p>
+            <p class="delivery-address">📍 {{ order.deliveryAddress }}</p>
+            <div class="order-status">
+              <span class="status-icon">{{ getStatusIcon(order.status) }}</span>
+              <span class="status-label">{{ getStatusLabel(order.status) }}</span>
+            </div>
+          </div>
+          <div class="order-total">
+            <span class="total-label">Total:</span>
+            <span class="total-value">R$ {{ calculateOrderTotal(order).toFixed(2) }}</span>
+          </div>
+        </div>
+
+        <div class="order-items" *ngIf="order.items && order.items.length > 0">
+          <h4>Itens do Pedido:</h4>
+          <div class="items-list">
+            <div class="item" *ngFor="let item of order.items">
+              <span class="item-quantity">{{ item.quantity }}x</span>
+              <span class="item-name">{{ getDishName(item.dishId) }}</span>
+              <span class="item-price">R$ {{ (getDishPrice(item.dishId) * item.quantity).toFixed(2) }}</span>
+            </div>
+          </div>
+          <div class="delivery-fee">
+            <span class="fee-label">Taxa de Entrega:</span>
+            <span class="fee-value">R$ {{ (order.deliveryFee || 5).toFixed(2) }}</span>
+          </div>
+        </div>
+
+        <div class="order-actions" *ngIf="canProcessPayment(order)">
+          <button 
+            class="btn btn-success" 
+            (click)="processPayment(order)"
+            *ngIf="order.status === 'READY'"
+          >
+            💳 Processar Pagamento
+          </button>
+          
+          <button 
+            class="btn btn-primary" 
+            (click)="markAsDelivered(order)"
+            *ngIf="order.status === 'READY'"
+          >
+            🚚 Marcar como Entregue
+          </button>
+          
+          <button 
+            class="btn btn-success" 
+            (click)="processPayment(order)"
+            *ngIf="order.status === 'DELIVERED'"
+          >
+            ✅ Confirmar Pagamento
+          </button>
+        </div>
+
+        <div class="payment-confirmed" *ngIf="order.status === 'PAID'">
+          <div class="confirmed-icon">✅</div>
+          <div class="confirmed-text">
+            <strong>Pagamento Confirmado</strong>
+            <p>Pedido pago com sucesso!</p>
+          </div>
+        </div>
+
+        <div class="order-actions" *ngIf="canRemoveFromHistory(order)">
+          <button 
+            class="btn btn-danger remove-btn" 
+            (click)="removeOrderFromHistory(order)"
+            title="Remover do histórico"
+          >
+            🗑️ Remover do Histórico
+          </button>
+        </div>
+
+        <div class="order-timestamp" *ngIf="order.createdAt">
+          <small>Pedido criado em: {{ order.createdAt | date:'dd/MM/yyyy HH:mm' }}</small>
+        </div>
+      </div>
+    </div>
+
+    <ng-template #noOrders>
+      <div class="no-orders">
+        <div class="no-orders-icon">💰</div>
+        <h3>Nenhum pedido encontrado</h3>
+        <p>Não há pedidos com o status selecionado no momento.</p>
+        <p>Tente alterar o filtro de status acima.</p>
+      </div>
+    </ng-template>
+  </div>
+
+  <!-- Resumo Financeiro -->
+  <div class="financial-summary">
+    <h3>📊 Resumo Financeiro</h3>
+    <div class="summary-cards">
+      <div class="summary-card pending">
+        <div class="summary-icon">💰</div>
+        <div class="summary-info">
+          <div class="summary-count">{{ pendingPaymentsCount }}</div>
+          <div class="summary-label">Aguardando Pagamento</div>
+        </div>
+      </div>
+      
+      <div class="summary-card paid">
+        <div class="summary-icon">✅</div>
+        <div class="summary-info">
+          <div class="summary-count">{{ paidOrdersCount }}</div>
+          <div class="summary-label">Pedidos Pagos</div>
+        </div>
+      </div>
+      
+      <div class="summary-card revenue">
+        <div class="summary-icon">💵</div>
+        <div class="summary-info">
+          <div class="summary-count">R$ {{ totalRevenue.toFixed(2) }}</div>
+          <div class="summary-label">Receita Total</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="reset-section">
+      <button 
+        class="reset-button" 
+        (click)="resetFinancialSummary()"
+        title="Resetar resumo financeiro"
+      >
+        🔄 Resetar Resumo
+      </button>
+    </div>
+  </div>
+</div>
