@@ -31,8 +31,8 @@
         <div class="order-header">
           <div class="order-info">
             <h3>{{ order.customerName }}</h3>
-            <p class="customer-phone">📞 {{ order.customerPhone }}</p>
-            <p class="delivery-address">📍 {{ order.deliveryAddress }}</p>
+            <p class="customer-phone" *ngIf="order.customerPhone">📞 {{ order.customerPhone }}</p>
+            <p class="delivery-address" *ngIf="order.deliveryAddress">📍 {{ order.deliveryAddress }}</p>
             <div class="order-status">
               <span class="status-icon">{{ getStatusIcon(order.status) }}</span>
               <span class="status-label">{{ getStatusLabel(order.status) }}</span>

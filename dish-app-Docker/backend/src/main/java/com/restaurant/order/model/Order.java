@@ -18,6 +18,12 @@ public class Order {
     @Column(name = "customer_name")
     private String customerName;
     
+    @Column(name = "customer_phone")
+    private String customerPhone;
+    
+    @Column(name = "delivery_address")
+    private String deliveryAddress;
+    
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private OrderStatus status;
@@ -68,6 +74,22 @@ public class Order {
     
     public void setCustomerName(String customerName) {
         this.customerName = customerName;
+    }
+    
+    public String getCustomerPhone() {
+        return customerPhone;
+    }
+    
+    public void setCustomerPhone(String customerPhone) {
+        this.customerPhone = customerPhone;
+    }
+    
+    public String getDeliveryAddress() {
+        return deliveryAddress;
+    }
+    
+    public void setDeliveryAddress(String deliveryAddress) {
+        this.deliveryAddress = deliveryAddress;
     }
     
     public OrderStatus getStatus() {

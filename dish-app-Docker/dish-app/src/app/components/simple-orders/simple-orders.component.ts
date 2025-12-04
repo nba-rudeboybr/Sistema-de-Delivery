@@ -256,15 +256,23 @@ export class SimpleOrdersComponent implements OnInit {
     }
 
     // Criar pedido com dados básicos
+    const phone = this.newOrder.customerPhone ? this.newOrder.customerPhone.trim() : '';
+    const address = this.newOrder.deliveryAddress ? this.newOrder.deliveryAddress.trim() : '';
+    
     const orderToSave = {
       tableNumber: Math.floor(Math.random() * 10) + 1,
       customerName: this.newOrder.customerName.trim(),
+      customerPhone: phone.length > 0 ? phone : null,
+      deliveryAddress: address.length > 0 ? address : null,
       status: 'NEW',
       items: [],
       totalAmount: 0
     };
     
-    console.log('Enviando pedido para o backend:', orderToSave);
+    console.log('=== DEBUG: Dados do pedido ===');
+    console.log('customerPhone:', phone, 'length:', phone.length);
+    console.log('deliveryAddress:', address, 'length:', address.length);
+    console.log('Enviando pedido para o backend:', JSON.stringify(orderToSave, null, 2));
     
     this.http.post('http://localhost:8080/orders', orderToSave).subscribe({
       next: (savedOrder) => {

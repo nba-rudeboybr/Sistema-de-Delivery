@@ -50,6 +50,8 @@ public class OrderService {
             Order order = optionalOrder.get();
             order.setTableNumber(orderDetails.getTableNumber());
             order.setCustomerName(orderDetails.getCustomerName());
+            order.setCustomerPhone(orderDetails.getCustomerPhone());
+            order.setDeliveryAddress(orderDetails.getDeliveryAddress());
             order.setStatus(orderDetails.getStatus());
             order.setItems(orderDetails.getItems());
             order.calculateTotal();
@@ -96,6 +98,8 @@ public class OrderService {
             KitchenOrder kitchenOrder = new KitchenOrder();
             kitchenOrder.setOrderId(order.getId());
             kitchenOrder.setCustomerName(order.getCustomerName());
+            kitchenOrder.setCustomerPhone(order.getCustomerPhone());
+            kitchenOrder.setDeliveryAddress(order.getDeliveryAddress());
             kitchenOrder.setTableNumber(order.getTableNumber());
             kitchenOrder.setStatus(order.getStatus());
             kitchenOrder.setTotalAmount(order.getTotalAmount());
